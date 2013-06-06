@@ -466,4 +466,6 @@ class FractalCube(FractalCubeData):
         def m_curry(*args, **kwargs): return m_func(self, *args, **kwargs)
         return m_curry
 
-
+class LogNormalFractalCubeGenerator():
+    def __init__(self):
+        pass

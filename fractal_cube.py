@@ -1,7 +1,9 @@
 import numpy as np
 import numpy.fft as fft
 import matplotlib.pyplot as pl
-from mathtools import LogNormalPDF
+import mathtools as mt
+import scipy.interpolate as si
+
 
 """
 _________________________________________________________________________________
@@ -26,10 +28,11 @@ Input parameters
 
 ## Dimensions of cube
 ## Currently all need to be the same
-ni, nj, nk = shape = (128, 128, 128)
+## For 2D set nk = 1. For 1D, nj = nk = 1
+ni, nj, nk = shape = (64, 64, 64)
 
 ## Sampling lower limit and power law index.
-kmin = 4
+kmin = 8
 beta = 5./3.
 
 ## Lognormal standard deviation and mean
@@ -39,30 +42,20 @@ mean_l = 1.
 ## Iteration tolerance
 iter_max = 10
 iter_tol = 0.01
+eta = 0.5
 
 ## The target spectra functions
-def f_hk(k):
+def func_target_spec(k, kmin):
     """
-    The high k funcitonal form
+    The high k>kmin funcitonal form. The value for k=0 is 
+    determined by normalization.
     """
-    kp = np.where(k>0.,k,np.inf)
-    return  kp**(-beta-2.)
+    kp = np.where(k>kmin, k, np.inf)
+    return  kp**(-beta - 2.)
 
-def f_lk(k): 
-    """
-    The low k funcitonal form
-    """
-    ## constant to make f_hk and f_lk match at k=kmin
-    c = kmin**(-beta-2.-4.)
-    return c*k**4
-    #return 0
-
-damp_mode = 'tanh'
-delta = 0.1
-ldelta = np.log10((kmin+0.5*delta)/(kmin-0.5*delta))
-
-## Do plots?
-plot = False
+## Do plots? save file?
+plot = True
+save = False
 
 
 """
@@ -73,55 +66,6 @@ Helper functions, variables
 
 e2ten, ten2e = np.log10(np.e), np.log(10.)
 
-def f_2f(x, f1, f2, xc, delta=1., damp_mode='switch'):
-    """
-    k            k array
-    f1           array containing values of first function. Same size as k
-    f2 
-    damp_mode    'switch'   discontinuous switch
-                 'roll'     exponential rollover
-                 'tanh'     a tanh switcher
-                 'ttanh'    a tanh switcher bounded by a tan function in its
-                            argument
-    """
-
-    if damp_mode == 'switch':
-        return np.where(x < xc, f1, f2)
-
-    elif damp_mode == 'roll':
-        return (f1 - f2)*np.exp(-x/xc) + f2
-
-    elif damp_mode == 'tanh':
-        return (0.5*(f1 - f2)*np.tanh(-(x - xc)/delta) + 0.5*(f1 + f2))
-
-    elif damp_mode == 'ttanh':
-        return np.where(x < xc-0.5*delta, f1, np.where(x > xc+0.5*delta, f2, 
-               0.5*(f1 - f2)*np.tanh(np.tan(-np.pi*(x - xc)/
-               (0.5*delta))) + 0.5*(f1 + f2)))
-    else: 
-        print('damp_mode "' + damp_mode + '" invalid')
-        raise(ValueError)
-
-def func_target_spec(k):
-    """
-    Just a readable shorthand for target spectrum function call f_2f
-    """
-    return f_2f(k, f_lk(k), f_hk(k), kmin, delta=delta, damp_mode=damp_mode)
-
-def zero_log_spec(s):
-    """
-    Takes logarithm of a spectrum while retaining the zeros
-    """
-    sp = np.where(s>0.,s,1)
-    return np.log10(sp)
-
-def zero_div(a, b):
-    """
-    Function that "safely" divides by zero by retaining
-    all values that were 0 as 0
-    """
-    bs = np.where(b>0, b, np.inf)
-    return a/bs
 
 def norm_target_spec(target_spec):
     """
@@ -133,16 +77,15 @@ def norm_target_spec(target_spec):
     """
     shape, N = target_spec.shape, target_spec.size
     target_spec = np.ravel(target_spec)
-    csqr = (N - 1.)/(pnorm(target_spec) - 1.)
+    csqr = (N - 1.)/pnorm(target_spec[1:])
     target_spec *= csqr; target_spec[0] = 1
     return target_spec.reshape(shape)
 
-def iso_power_spec(kr, pspec_r, nk=ni, raveled=False, 
+def iso_power_spec(kr, pspec_r, raveled=False, 
                    stdev=False, digitize=False):
     """
     kr        k array
     pspec_r   power spectrum array
-    nk        size per dimension
     stdev     output stdvs as well
 
     kr and pspec must be an array of same shape
@@ -160,8 +103,6 @@ def iso_power_spec(kr, pspec_r, nk=ni, raveled=False,
         shape = kr.shape
 
         ## Ravel
-        #kr = np.ravel(kr)[1:]
-        #pspec_r = np.ravel(pspec_r)[1:]
         kr = np.ravel(kr)
         pspec_r = np.ravel(pspec_r)
         bins = np.append(np.unique(kr), kr.max()+1)
@@ -187,7 +128,7 @@ def iso_power_spec(kr, pspec_r, nk=ni, raveled=False,
         if digitize: return means, binc, psd.reshape(shape)
         else:        return means, binc
 
-def plot_power_spectrum(k, ps, label, line, error=False, k0line=False,
+def plot_power_spec(k, ps, label, line, error=False, k0line=False,
                        reduce=True):
     """
     k           array of k values. If bin == False, then this
@@ -209,7 +150,7 @@ def plot_power_spectrum(k, ps, label, line, error=False, k0line=False,
 
     else:
         if reduce:
-            print('Cannot have bin and error.')
+            print('Cannot have "reduce" and "error."')
             raise(ValueError)
         means, binc, stdvs = iso_power_spec(k, ps, stdev=True)
         ylower = np.maximum(1, means - stdvs)
@@ -223,8 +164,16 @@ def plot_power_spectrum(k, ps, label, line, error=False, k0line=False,
     pl.yscale('log')
 
 def plot_lrf(lrf):
+    """
+    Plot lognormal density field midplane slice.
+    Plot one-dimensional curve, if 1D field
+    """
 
-    pl.imshow(np.log10(lrf[np.int(ni/2.),:,:]))
+    if ndim > 1:
+        pl.imshow(np.log10(lrf[:,:,np.int(nk/2.)]))
+
+    else:
+        pl.semilogy(lrf[:,0,0])
 
 def plot_gpdf(grf, loge=True):
     """
@@ -285,34 +234,7 @@ def plot_lpdf(lrf, lrf_corr):
 
     pl.show()
 
-def count_zero(a):
-    """
-    Useful function to count zeros in an array.
-    """
-    return np.count_nonzero(np.where(a == 0, 1, 0))
-
-def count_nan(a):
-    """
-    Useful function to count zeros in an array.
-    """
-    return np.count_nonzero(np.where(np.isnan(a), 1, 0))
-
-def count_inf(a):
-    """
-    Useful function to count zeros in an array.
-    """
-    return np.count_nonzero(np.where(np.isinf(a), 1, 0))
-
-def convergence_estimator(rms, rms_old, i):
-    dist, bins = np.histogram(lrf_corr, 60, density=True)
-    binc = 0.5*(bins[:-1] + bins[1:])
-    lnpdf = ln.pdf(binc, mean_g, sigma_g)
-    rms_old = rms
-    rms = np.sqrt(np.mean((dist - lnpdf)**2/lnpdf**2))
-    print(str(i)+': convergence... '+str(rms_old)+' - '+str(rms)+' = '+str(rms_old - rms))
-    return rms, rms_old
-
-def power_spectrum(F, k=None):
+def power_spec(F, k=None):
     """
     The power spectrum is D = 4 pi k^2 F(k)* F(k) ~ k^-5/3
     or D ~ F(k)* F(k) ~ k^-11/3
@@ -339,32 +261,48 @@ Main bit
 pl.ion()
 
 ## Theoretical lognormal object
-ln = LogNormalPDF(mean_l, sigma_l)
+ln = mt.LogNormalPDF(mean_l, sigma_l)
 
 ## Convert to gaussian stats
 mean_g, sigma_g = ln.l2g(mean_l, sigma_l)
 
-## Gaussian random field
+## Gaussian random field, and the corresponding lognormal random field
 grf = np.random.normal(mean_g, sigma_g, shape)
-lrf = np.exp(grf)
 
 ## Sampling space. See definition of FFT, k and frequency 
 ## at http://docs.scipy.org/doc/numpy/reference/routines.fft.html
-sampling = fft.fftfreq(ni)
-k1d = sampling*ni
-ksqr = k1d*k1d
-kmag = np.sqrt(np.add.outer(np.add.outer(ksqr, ksqr), ksqr))
+sampli, samplj, samplk = fft.fftfreq(ni), fft.fftfreq(nj), fft.fftfreq(nk)
+k1di, k1dj, k1dk = sampli*ni, samplj*nj, samplk*nk
+ksqri, ksqrj, ksqrk = k1di*k1di, k1dj*k1dj, k1dk*k1dk
+ndim = 3 - mt.count_zero(np.array(shape)-1)
+kmag = np.sqrt(np.add.outer(np.add.outer(ksqri, ksqrj), ksqrk))
+
+## Isotropic k (kmag is also used as a dummy second argument)
+dummy, k_iso = iso_power_spec(kmag, kmag)
+
+## Some helpful arrays for log k
+lk_iso = np.log10(k_iso); lkmin = np.log10(kmin)
+lkmag = mt.zero_log(kmag)
+
+## Some helpful indices that determine where fits and corrections are applied an. 
+## Could also have created these in linear space. The important thing is that there 
+## are two types. One for iso, and one for n-dimensional arrays.
+sf_lk_iso = np.s_[lk_iso>=lkmin]
+so_lk_iso = np.s_[np.logical_not(sf_lk_iso)]; so_lk_iso[0] = False
+sf_lkmag = np.s_[lkmag>=lkmin]
+so_lkmag = np.ravel(np.s_[np.logical_not(sf_lkmag)]); 
+so_lkmag[0] = False; so_lkmag.reshape(shape)
 
 ## The target spectrum
-target_spec = func_target_spec(kmag)
+target_spec = func_target_spec(kmag, kmin)
 target_spec = norm_target_spec(target_spec)
+target_spec_iso = func_target_spec(k_iso, kmin)
 
 ## The apodization values
 apod = np.sqrt(target_spec)
 
 ## N-dimensional (3-dimensional) FFT lognormal cube
 Fg = fft.fftn(grf)
-Fl = fft.fftn(lrf)  ## Only for plotting
 
 ## Apodize with power law
 Fga = Fg*apod
@@ -375,18 +313,23 @@ if plot:
 
     ## Power spectra (Dg should be white noise)
     ## All of the below are only needed for plotting
-    Dg = power_spectrum(Fg)
-    Dga = power_spectrum(Fga)
-    Dl = power_spectrum(Fl)
+    Dg = power_spec(Fg)
+    Dga = power_spec(Fga)
+    lrf = np.exp(grf)
+    Fl = fft.fftn(lrf)
+    Dl = power_spec(Fl)
 
-    fig, axs = pl.subplots(1, 3, figsize=(14,4))
+    fig, axs = pl.subplots(1, 4, figsize=(18,4))
     pl.sca(axs[0]); plot_lrf(np.real(lrf))
     pl.sca(axs[1]); plot_gpdf(np.real(grf))
     pl.sca(axs[2])
-    plot_power_spectrum(kmag, Dg,'orig G', 'k:')
-    plot_power_spectrum(kmag, Dga, 'apodized G', 'r-', k0line=True)
-    plot_power_spectrum(kmag, Dl,'orig L', 'b-')
+    plot_power_spec(kmag, Dg,'orig G', 'k:')
+    plot_power_spec(kmag, Dga, 'apodized G', 'r-', k0line=True)
+    plot_power_spec(kmag, Dl,'orig L', 'b-')
     pl.legend(loc=3)
+
+
+
 
 ## Loop begins here
 convergence, iiter = 1, 1
@@ -400,66 +343,62 @@ while convergence > iter_tol and iiter <= iter_max:
 
     ## Power spectrum of lognormal is not desired power-law
     Fla = fft.fftn(lrf_a)
-    Dla = power_spectrum(Fla)
+    Dla = power_spec(Fla)
 
     ## Isotropic power spectra
     Dla_iso, k_iso = iso_power_spec(kmag, Dla)
 
     ## Fits to the isotropic spectra
-    lk_iso = np.log10(k_iso)
 
     ## zeroth order fit, to find best height for target spectrum 
-    ## (kind of normalization)
-    target_spec_iso = func_target_spec(k_iso)
-    fit0c = np.polyfit(lk_iso, zero_log_spec(Dla_iso) -
-                               zero_log_spec(target_spec_iso), 0)
-    fit0 = fit0c[0] + zero_log_spec(target_spec_iso)
+    ## (kind of normalization). The multiplication by 10**fit0
+    ## retains zeroes in log space.
+    weights = np.r_[np.diff(k_iso), np.diff(k_iso[-2:])]
+    fit0 = np.average(mt.zero_log(Dla_iso[sf_lk_iso]) -
+                      mt.zero_log(target_spec_iso[sf_lk_iso]),
+                      weights=weights[sf_lk_iso])
+    p0_iso = mt.zero_log(10**fit0*target_spec_iso)
 
-    ## Fit data with two polynomials k < kmin and k > kmin separately
-    lkmin = np.log10(kmin)
-    lkl, lkh = np.s_[lk_iso<lkmin], np.s_[lk_iso>=lkmin]
-    fit2l = np.polyfit(lk_iso[lkl], zero_log_spec(Dla_iso[lkl]), 2)
-    fit2h = np.polyfit(lk_iso[lkh], zero_log_spec(Dla_iso[lkh]), 2)
-    p2l_iso = np.polyval(fit2l, lk_iso)
-    p2h_iso = np.polyval(fit2h, lk_iso)
-    fit2 = f_2f(lk_iso, p2l_iso, p2h_iso, lkmin, delta=ldelta, damp_mode=damp_mode)
+    ## Fit power spec of lognormal with polynomials
+    fit2 = np.polyfit(lk_iso[sf_lk_iso], mt.zero_log(Dla_iso[sf_lk_iso]), 2)
+    p2_iso = np.polyval(fit2, lk_iso)
 
     ## Plot data power-spectra
     if plot:
 
-        ## Only needed for plot
+        ## Power spectra. These are only needed for plotting
+        Dga = power_spec(Fga)
         Dga_iso, k_iso = iso_power_spec(kmag, Dga)
 
         fig, axs = pl.subplots(1, 4, figsize=(18,4))
         pl.sca(axs[0]); plot_lrf(np.real(lrf_a))
         pl.sca(axs[1]); plot_gpdf(np.real(grf_a))
         pl.sca(axs[2]);
-        plot_power_spectrum(k_iso, Dga_iso, 'apodized G', 'r:', k0line=True, reduce=False)
-        plot_power_spectrum(k_iso, Dla_iso, 'apodized L', 'b:', k0line=True, reduce=False)
+        plot_power_spec(k_iso, Dga_iso, 'apodized G', 'r:', k0line=True, reduce=False)
+        plot_power_spec(k_iso, Dla_iso, 'apodized L', 'b:', k0line=True, reduce=False)
         pl.legend(loc=3)
 
         ## Plot the fits
-        plot_power_spectrum(k_iso, 10**fit2, 'fit p2', 'k--', reduce=False)
-        plot_power_spectrum(k_iso, 10**fit0, 'fit p0', 'g--', reduce=False)
+        plot_power_spec(k_iso[sf_lk_iso], 10**p2_iso[sf_lk_iso], 'fit p2', 'k--', reduce=False)
+        plot_power_spec(k_iso[sf_lk_iso], 10**p0_iso[sf_lk_iso], 'fit p0', 'g--', reduce=False)
 
-        ## plot residuals
+        ## Plot residuals
         pl.sca(axs[3])
-        plot_power_spectrum(k_iso, zero_div(Dga_iso,target_spec_iso),
-                            'apodized G', 'r:', reduce=False)
-        plot_power_spectrum(k_iso, zero_div(Dla_iso,target_spec_iso),
-                            'apodized L', 'b:', reduce=False)
-        plot_power_spectrum(k_iso, zero_div(10**fit2,target_spec_iso),
-                            'fit p2', 'k--', reduce=False)
-        plot_power_spectrum(k_iso, zero_div(10**fit0,target_spec_iso),
-                            'fit p0', 'g--', reduce=False)
+        plot_power_spec(k_iso, mt.zero_div(Dga_iso,target_spec_iso),
+                        'apodized G', 'r:', reduce=False)
+        plot_power_spec(k_iso, mt.zero_div(Dla_iso,target_spec_iso),
+                        'apodized L', 'b:', reduce=False)
+        plot_power_spec(k_iso[sf_lk_iso], mt.zero_div(10**p2_iso[sf_lk_iso],
+                        target_spec_iso[sf_lk_iso]), 'fit p2', 'k--', reduce=False)
+        plot_power_spec(k_iso[sf_lk_iso], mt.zero_div(10**p0_iso[sf_lk_iso],
+                        target_spec_iso[sf_lk_iso]), 'fit p0', 'g--', reduce=False)
 
-    ## Corrections based on fits
-    lkmag = zero_log_spec(kmag)
-    p2l = np.polyval(fit2l, lkmag)
-    p2h = np.polyval(fit2h, lkmag)
-    p2 = f_2f(lkmag, p2l, p2h, lkmin, delta=ldelta, damp_mode=damp_mode)
-    p0 = fit0c[0] + zero_log_spec(target_spec)
-    corr = 0.4*(p0 - p2); corr[0,0,0] = 0
+
+    ## Corrections based on fits. fit0 needs to be multiplied
+    ## with the func_target_spec, otherwise 0s are not preserved.
+    p2 = np.polyval(fit2, lkmag)
+    p0 = mt.zero_log(10**fit0*func_target_spec(kmag, kmin))
+    corr = np.where(sf_lkmag, eta*(p0 - p2), 0);
 
     ## Apply correction (in log space) to apodization spectrum
     corr_apod = apod*10**(corr)
@@ -469,15 +408,35 @@ while convergence > iter_tol and iiter <= iter_max:
     corr_apod2 = norm_target_spec(corr_apod**2)
     apod_old, apod = apod.copy(), np.sqrt(corr_apod2)
     Fga = Fg*apod
-        
+
+
     ## Estimate convergence
-    convergence = np.mean(zero_div(abs(power_spectrum(apod_old) - 
-                                       power_spectrum(apod)),
-                                  power_spectrum(apod))) 
+    convergence = np.average(mt.zero_div(abs(power_spec(apod_old) - 
+                                             power_spec(apod)),
+                                         power_spec(apod)))
     print('iteration ' + str(iiter))
     print('convergence = ' + str(convergence))
     print('')
 
     ## Get ready for next iteration
     iiter += 1
+
+
+## Save output file
+if save:
+    ## A last conversion
+
+    ## Fourier transform back (the imag part is negligible)
+    grf_a = np.real(fft.ifftn(Fga))
+
+    ## Create lognormal
+    lrf_a = np.exp(grf_a)
+
+    ## Save file
+    fname = ('k'+format(kmin,'0>2d')+'_'+
+             format(ni,'0>4d')+
+             ('x'+format(nj,'0>4d') if ndim>1 else '')+
+             ('x'+format(nk,'0>4d') if ndim>2 else '')+
+             '.dat')
+    lrf_a.tofile(fname)
 

@@ -1,0 +1,10 @@
+Quickstart
+==========
+
+To load the pyFC module do::
+
+import pyFC
+
+Make sure pyFC is in your PYTHONPATH
+
+

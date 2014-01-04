@@ -121,6 +121,7 @@ class FCAffine():
     def mirror(self, fc, ax=0, out='copy'):
         """
         Mirrors a cube about the midplane along axis ax
+
         out      One of the modes accepted by fc._returner
         """
         if ax == 0: result = fc.cube[::-1,:,:]
@@ -390,26 +391,42 @@ class FractalCube():
         import copy
         return copy.deepcopy(self)
 
-    def read_cube(self, fname='data.dbl'):
+    def read_cube(self, fname='data.dbl', prec='double'):
         """
         Read cube with file name fname
+
+        fname  Data filename 
+
+        prec   Floating point precision of output {'double'|'single'}
         """
-        cube = np.fromfile(fname, dtype=np.dtype('<f8'), count=-1)
+        if prec == 'double':   dtype = np.dtype('<f8')
+        elif prec == 'single': dtype = np.dtype('<f4')
+        else: ValueError('Unknown prec '+prec)
+
+        cube = np.fromfile(fname, dtype=dtype, count=-1)
         cube = cube.reshape(*self.shape)
         return self._returner(cube, 'ndarray')
 
-    def write_cube(self, fname='data.dbl', app=True, pad=False):
+    def write_cube(self, fname='data.dbl', app=True, pad=False, prec='double'):
         """
         Writes out a fractal cube data file in little endian, 
         double precision. Care is taken not to overwrite existing files.
 
-        app   automatically append kmin, ni, nj, and nk values to filename.
-              If app == True, append kmin, ni, nj, nk values to filename. 
-              If suffixed files '<base>-[0-9][0-9]<ext>' exist, appended
-              by a suffix one larger than the highest number found.
+        fname  Data filename 
 
-        pad   Pad the numbering with 0s
+        app    automatically append kmin, ni, nj, and nk values to filename.
+               If app == True, append kmin, ni, nj, nk values to filename. 
+               If suffixed files '<base>-[0-9][0-9]<ext>' exist, appended
+               by a suffix one larger than the highest number found.
+
+        pad    Pad the numbering with 0s
+
+        prec   Floating point precision of output {'double'|'single'}
         """
+
+        if prec == 'double':   dtype = np.dtype('<f8')
+        elif prec == 'single': dtype = np.dtype('<f4')
+        else: ValueError('Unknown prec '+prec)
 
         if app:
             ext = osp.splitext(fname)[1]
@@ -429,7 +446,7 @@ class FractalCube():
  
         fname = pt.unique_fname(fname, '-', '[0-9][0-9]')
 
-        cube.tofile(fname)
+        cube.tofile(fname, dtype=dtype)
         return 1
 
     def copy(self):

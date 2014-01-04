@@ -1,7 +1,19 @@
 Quickstart
 ==========
 
-To install the module::
+Requirements
+------------
+
+  - Python 2.7 or above
+  - NumPy
+  - matplotlib (for visualization routines)
+  - SciPy (if using FCStats)
+  - Generating large cubes requires sufficient memory on the system
+
+Installation
+------------
+
+The simplest way to install the module is::
 
   pip install pyFC
 
@@ -13,6 +25,9 @@ You can get the most recent source code from bitbucket::
 
   git clone 
 
+Generating or loading a fractal cube
+------------------------------------
+
 To load the pyFC module (making sure pyFC in your ``PYTHONPATH``)::
 
   import pyFC
@@ -22,12 +37,60 @@ Create a fractal cube object and generate a lognormal fractal cube with default 
   fc = pyFC.LogNormalFracalCube()
   fc.gen_cube()
 
+A cube can also be read from a data file. In this case, the statistical parameters should be given when creating the fractal cube instance::
+
+  fc = pyFC.LogNormalFracalCube(ni=128, nj=128, nk=128, kmin=1, mean=1, 
+                                sigma=np.sqrt(5.), beta=-5./3.)
+  fc.read_cube(<fname>)
+
 The fractal cube data is in the object member ``fc.cube``. The statistical parameters are also contained as members of the object, ``fc.mean``, ``fc.sigma``, ``fc.kmin``, ``fc.beta``, ``fc.n{ijk}``.
 
+
+Manipulating fractal cubes
+--------------------------
+
 Functions exist to manipulate fractal cube objects: ``pyFC.slice``, ``pyFC.tri_slice``, ``pyFC.translate``, ``pyFC.permute``, ``pyFC.mirror``, ``pyFC.extract_feature``, ``pyFC.lthreshold``, ``pyFC.pp_raytrace``, ``pyFC.mult``, ``pyFC.pow`` . (They are associated with the classes ``FCSlicer``, ``FCAffine``, ``FCExtractor``, ``FCRayTracer``, ``FCDataEditor``, ``FCStats``).
+
+For example,::
+
+  pyFC.mirror(fc, ax=1)
+
+would return a copy of a fractal cube with the data mirrored (in both directions) at the mid-plane along the first axis. The transformations can also be done "in place", such that the same instance is modified::
+
+  pyFC.mirror(fc, ax=1, out='inplace')
 
 To write the fractal cube as data use the routine::
 
   pyFC.write_cube(<fname>)
 
+The data is written out in a binary file in double precision with the field flattened to 1 dimension in C-ordering.
+
+
+Visualizing fractal cubes
+-------------------------
+
+A number of plotting routines exist to visualize the scalar field and statistical distribution fractal cube. They are useful as such to quickly visualize the scalar field, PDF, and power spectrum of the fractal cube.
+
+
+Of these :func:`pyFC.plot_field_stats()` is particularly handy as it displays a mid-plane slice, the PDF, and the power spectrum in one figure with three panels.
+
+For example:: 
+
+  import pyFC
+  import matplotlib.pyplot as pl
+  import matplotlib.cm as cm
+
+  pl.ion()
+
+  fc = pyFC.LogNormalFractalCube(ni=3, nj=128, nk=128, kmin=10, mean=1)
+  fc.gen_cube()
+  pyFC.plot_field_stats(fc, scaling='log', vmin=-2.1, vmax=2.1, cmap=cm.jet)
+
+produces the following plot three-panel figure:
+
+.. figure:: im/field_stats.png
+   :width: 60 em
+   :align: center
+
+Other functions are ``plot_midplane_slice``, ``plot_raytrace``, ``plot_power_spec``, ``plot_pdf``, and their respective ``paint_<...>`` versions. The former create a figure and draw the respecitve plot, wheras the latter "paint" the plot into axes provided in the argument. This allows for custom arrangement of multi-panel figures. 
 

@@ -286,10 +286,11 @@ def plot_raytrace(fc, ax=0, scaling='log', cmap=cm.copper,
 def plot_field_stats(fc, scaling='lin', cmap=cm.copper, plottype='imshow',
                      vmin=None, vmax=None):
     """
-    Create a three-panel plot with
-    - cube density slice
-    - cube single-point pdf
-    - cube power spectrum
+    Create a three-panel plot with::
+
+      1. cube density slice
+      2. cube single-point pdf
+      3. cube power spectrum
 
     fc         FractalCube object
     """

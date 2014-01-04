@@ -2,5 +2,9 @@ vs_cloud.vim
 create_PLUTO_gridfile.py
 pluto/
 cubes/
+_build/
+_build/*/
+_build/*/*/
+_static/
 *pyc
 *.sw*

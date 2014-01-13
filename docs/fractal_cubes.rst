@@ -1,6 +1,10 @@
 Fractal Cubes
 =============
 
+.. contents:: On this page...
+   :local:
+   :backlinks: top
+
 .. figure:: im/512_02-im.png
    :width: 15 em
    :align: right
@@ -12,6 +16,9 @@ Fractal Cubes
 .. figure:: im/512_20-im.png
    :width: 15 em
    :align: right
+
+General Properties
+------------------
 
 We refer to "fractal cubes" as randomly generated scalar fields in three-dimensional cartesian space, :math:`\rho(x_1, x_2, x_3)`, from some probability distribution function (PDF), :math:`P(\rho)`, and fractal correlation in space. The two-point fractal distribution is established by a power-law spectrum :math:`D(k)` in Fourier space, and characterized by the slope of the power-law, :math:`\beta`, the Nyquist limit :math:`k_\mathrm{max}`, and a lower cutoff wavenumber, :math:`k_\mathrm{min}`. 
 

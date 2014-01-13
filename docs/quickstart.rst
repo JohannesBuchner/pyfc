@@ -1,6 +1,10 @@
 Quickstart
 ==========
 
+.. contents:: On this page...
+   :local:
+   :backlinks: top
+
 Requirements
 ------------
 
@@ -21,9 +25,13 @@ To upgrade the module::
 
   pip install --upgrade pyFC
 
+The package can be downloaded at `<https://pypi.python.org/pypi/pyFC>`_.
+
 You can get the most recent source code from bitbucket::
 
-  git clone 
+  git clone https://pandante@bitbucket.org/pandante/pyfc.git
+
+Or download zipped versions here: `tar.gz <https://bitbucket.org/pandante/pyfc/get/master.tar.gz>`_ | `zip <https://bitbucket.org/pandante/pyfc/get/master.zip>`_
 
 Generating or loading a fractal cube
 ------------------------------------

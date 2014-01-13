@@ -1,6 +1,11 @@
 API Reference
 =============
 
+.. contents:: On this page...
+   :local:
+   :backlinks: top
+
+
 Fractal Cube objects
 --------------------
 

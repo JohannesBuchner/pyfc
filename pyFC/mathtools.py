@@ -29,7 +29,7 @@ class LogNormalPDF():
         the desired member variable.
         """
 
-        ## Gaussian and Lognormal means (m, mu) & standard deviations (s, sigma)
+        # Gaussian and Lognormal means (m, mu) & standard deviations (s, sigma)
         if gstat == False:
             s = self.sigma_l2g(mu, sigma)
             m = self.mu_l2g(mu, sigma)
@@ -44,7 +44,7 @@ class LogNormalPDF():
         self.sigma = sigma
         self.sigma_g = s
 
-        ## higher moments
+        # higher moments
         self.skew = self.calc_skew()
         self.kurt = self.calc_kurt()
         self.median = self.calc_median()
@@ -120,11 +120,11 @@ class LogNormalPDF():
 
         m, s = self._lgstats_sel(mu, sigma, gstat)
 
-        ## The PDF
+        # The PDF
         result = np.exp(-(logx - m)**2/(2*s**2))/\
                 (s*np.sqrt(2*np.pi)) 
 
-        ## Result is d N / d log rho
+        # Result is d N / d log rho
         return result
 
     def calc_mode(self, mu=None, sigma=None, gstat=False):

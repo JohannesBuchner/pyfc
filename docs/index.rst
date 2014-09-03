@@ -3,6 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+
 Introduction
 ============
 
@@ -23,12 +24,13 @@ Contents
 ========
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    quickstart
    fractal_cubes
    demo
    api_ref
+
 
 
 Indices and tables
@@ -38,3 +40,8 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+
+License and Disclaimer
+======================
+
+The code is free and open source under the terms of the `GNU Lesser General Public License (LGPL) <http://www.gnu.org/licenses/lgpl.html>`_, and comes without warranty. The content of this documentation is licensed under `GNU Free Documentation License <http://www.gnu.org/copyleft/fdl.html>`_.

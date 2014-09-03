@@ -47,6 +47,9 @@ source_suffix = '.rst'
 # The master toctree document.
 master_doc = 'index'
 
+# Content will be inserted into the main body of an autoclass directive.
+autoclass_content = 'both'
+
 # General information about the project.
 project = u'pyFC'
 copyright = u'2014, Alexander Y. Wagner'
@@ -170,7 +173,7 @@ html_static_path = ['_static']
 #html_show_sphinx = True
 
 # If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
-#html_show_copyright = True
+html_show_copyright = False
 
 # If true, an OpenSearch description file will be output, and all pages will
 # contain a <link> tag referring to it.  The value of this option must be the

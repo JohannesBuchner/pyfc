@@ -1,3 +1,6 @@
+.. sectnum::
+   :start: 4
+
 API Reference
 =============
 
@@ -5,11 +8,10 @@ API Reference
    :local:
    :backlinks: top
 
-
 Fractal Cube objects
 --------------------
 
-The two main classes dealing with fractal cubes in this module are :class:LogNormalFractalCube and :class:GaussianFractalCube, which are both derived from :class:FractalCube (see :file:`clouds.py`). The following are descriptions of the class and its public members.
+The two main classes dealing with fractal cubes in this module are :class:`pyFC.LogNormalFractalCube` and :class:`pyFC.GaussianFractalCube`, which are both derived from :class:`pyFC.FractalCube` (see :file:`clouds.py`). The following are descriptions of the class and its public members.
 
 .. autoclass:: pyFC.LogNormalFractalCube
    :inherited-members:
@@ -41,7 +43,7 @@ The following are some utility function for quick visualization and inspection o
 Manipulation functions
 ----------------------
 
-Various functions exist which support manipulations of fractal cubes:
+Various functions exist which support manipulations of fractal cubes. Note that these exist as members of the cube object itself as well, e.g., :func:`fc.mirror`:
 
 .. autofunction:: pyFC.slice
 .. autofunction:: pyFC.tri_slice
@@ -55,25 +57,4 @@ Various functions exist which support manipulations of fractal cubes:
 .. autofunction:: pyFC.mult
 .. autofunction:: pyFC.write_cube
 
-Classes of manipulation functions 
----------------------------------
-
-The function to manipulate fractal cubes described above are members of the following classes:
-
-.. autoclass:: pyFC.FCSlicer    
-.. autoclass:: pyFC.FCAffine    
-.. autoclass:: pyFC.FCExtractor 
-.. autoclass:: pyFC.FCRayTracer 
-.. autoclass:: pyFC.FCDataEditor
-.. autoclass:: pyFC.FCStats     
-.. autoclass:: pyFC.FractalCube 
-
-
-.. .. automodule:: pyFC
-..    :imported-members:
-..    :members:
-..    :synopsis:
-..    :platform:
-..    :undoc-members:
-..    :show-inheritance:
 

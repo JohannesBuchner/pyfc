@@ -13,7 +13,7 @@ except LookupError:
 setup(
     name = "pyFC",
     packages = ["pyFC"],
-    version = "0.1.2",
+    version = "0.1.3",
     description = "Fractal cube generator, analyzer and visualizer",
     author = "Alexander Y. Wagner",
     author_email = "alexander.y.wagner@gmail.com",

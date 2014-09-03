@@ -1,3 +1,6 @@
+.. sectnum::
+   :start: 1
+
 Quickstart
 ==========
 
@@ -8,7 +11,7 @@ Quickstart
 Requirements
 ------------
 
-  - Python 2.7 or above
+  - Python 2.7 or above. (Tested mainly with Python 2.7.x)
   - NumPy
   - matplotlib (for visualization routines)
   - SciPy (if using FCStats)
@@ -23,13 +26,13 @@ The simplest way to install the module is::
 
 To upgrade the module::
 
-  pip install --upgrade pyFC
+  pip install -U pyFC
 
 The package can be downloaded at `<https://pypi.python.org/pypi/pyFC>`_.
 
 You can get the most recent source code from bitbucket::
 
-  git clone https://pandante@bitbucket.org/pandante/pyfc.git
+  git clone https://bitbucket.org/pandante/pyfc.git
 
 Or download zipped versions here: `tar.gz <https://bitbucket.org/pandante/pyfc/get/master.tar.gz>`_ | `zip <https://bitbucket.org/pandante/pyfc/get/master.zip>`_
 
@@ -57,7 +60,7 @@ The fractal cube data is in the object member ``fc.cube``. The statistical param
 Manipulating fractal cubes
 --------------------------
 
-Functions exist to manipulate fractal cube objects: ``pyFC.slice``, ``pyFC.tri_slice``, ``pyFC.translate``, ``pyFC.permute``, ``pyFC.mirror``, ``pyFC.extract_feature``, ``pyFC.lthreshold``, ``pyFC.pp_raytrace``, ``pyFC.mult``, ``pyFC.pow`` . (They are associated with the classes ``FCSlicer``, ``FCAffine``, ``FCExtractor``, ``FCRayTracer``, ``FCDataEditor``, ``FCStats``).
+Functions exist to manipulate fractal cube objects: :func:`pyFC.slice`, :func:`pyFC.tri_slice`, :func:`pyFC.translate`, :func:`pyFC.permute`, :func:`pyFC.mirror`, :func:`pyFC.extract_feature`, :func:`pyFC.lthreshold`, :func:`pyFC.pp_raytrace`, :func:`pyFC.mult`, :func:`pyFC.pow` . (They are associated with the classes :class:`pyFC.FCSlicer`, :class:`pyFC.FCAffine`, :class:`pyFC.FCExtractor`, :class:`pyFC.FCRayTracer`, :class:`pyFC.FCDataEditor`, :class:`pyFC.FCStats`).
 
 For example,::
 
@@ -66,6 +69,8 @@ For example,::
 would return a copy of a fractal cube with the data mirrored (in both directions) at the mid-plane along the first axis. The transformations can also be done "in place", such that the same instance is modified::
 
   pyFC.mirror(fc, ax=1, out='inplace')
+
+Manipulation routines are also members of the cube object itself. E.g. :func:`fc.mirror()`.
 
 To write the fractal cube as data use the routine::
 
@@ -80,7 +85,7 @@ Visualizing fractal cubes
 A number of plotting routines exist to visualize the scalar field and statistical distribution fractal cube. They are useful as such to quickly visualize the scalar field, PDF, and power spectrum of the fractal cube.
 
 
-Of these :func:`pyFC.plot_field_stats()` is particularly handy as it displays a mid-plane slice, the PDF, and the power spectrum in one figure with three panels.
+Of these :func:`pyFC.plot_field_stats` is particularly handy as it displays a mid-plane slice, the PDF, and the power spectrum in one figure with three panels.
 
 For example:: 
 

@@ -8,5 +8,7 @@ _build/
 _build/*/
 _build/*/*/
 _static/
+.idea/
+.project
 *pyc
 *.sw*

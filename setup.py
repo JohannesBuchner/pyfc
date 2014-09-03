@@ -13,11 +13,12 @@ except LookupError:
 setup(
     name = "pyFC",
     packages = ["pyFC"],
-    version = "0.1.1",
+    version = "0.1.2",
     description = "Fractal cube generator, analyzer and visualizer",
     author = "Alexander Y. Wagner",
     author_email = "alexander.y.wagner@gmail.com",
     url = "http://www.ccs.tsukuba.ac.jp/Astro/Members/ayw/code/pyFC/index.html",
+    download_url = "https://bitbucket.org/pandante/pyfc.git",
     keywords = ["clouds", "astrophysics", "simulation", "hydrodynamics", "cfd",
                 "initial conditions", "fractal"],
     classifiers = [

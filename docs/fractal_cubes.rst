@@ -37,9 +37,9 @@ The target spectrum is generally chosen to have a slope representative of the de
 
 It is sometimes useful to restrict the largest or smallest spatially correlated scales contained in the fractal cube. The lower cutoff wave number restricts sampling, and therefore fractal structure, to scales smaller than :math:`L/k_\mathrm{min}`, where :math:`L` is the width of the cube. This is a useful parameter in controlling the size scale (or column depth) of structure in the fractal cube. The Nyquist limit, :math:`k_\mathrm{max,i} = (n_i + 1)/2`, sets the smallest correlated scales, and is used as the upper sampling wavenumber limit.
 
-The main functionality of the pyFC module is to generate a lognormal fractal cube for a scalar field :math:`\rho`, but there is also a class that represents gaussian fractal cubes. Note that, although we refer to fractal cubes as cubes, they may in fact be cuboidal. The code, however, currently only properly supports cubes currently, that is :math:`n_i = n_j = n_k`, where these are the number of cells in the :math:`i`, :math:`j`, and :math:`k` directions of the fractal cube. 
+The main functionality of the pyFC module is to generate a lognormal fractal cube for a scalar field :math:`\rho`, but there is also a class that represents gaussian fractal cubes. Note that, although we refer to fractal cubes as cubes, they may in fact be cuboidal, that is :math:`n_i \ne{} n_j \ne{} n_k`, where these are the number of cells in the :math:`i`, :math:`j`, and :math:`k` directions of the fractal cube. 
 
-Since fractal cubes are generated purely by manipulations in the fourier space of the scalar field, the fractalc cube is by construction periodic and can be trivially tesselated.
+Since fractal cubes are generated purely by manipulations in the fourier space of the scalar field, the fractal cube is by construction periodic and can be trivially tesselated.
 
 Lognormal Fractal Cubes
 -----------------------

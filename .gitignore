@@ -4,11 +4,10 @@ pluto/
 cubes/
 dist/
 MANIFEST
-_build/
-_build/*/
-_build/*/*/
+build/
+docs/_build/
 _static/
 .idea/
 .project
-*pyc
-*.sw*
+**/*.pyc
+**/.*.sw*

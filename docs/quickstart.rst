@@ -105,5 +105,5 @@ produces the following plot three-panel figure:
    :width: 60 em
    :align: center
 
-Other functions are ``plot_midplane_slice``, ``plot_raytrace``, ``plot_power_spec``, ``plot_pdf``, and their respective ``paint_<...>`` versions. The former create a figure and draw the respecitve plot, wheras the latter "paint" the plot into axes provided in the argument. This allows for custom arrangement of multi-panel figures. 
+Other functions are :func:`pyFC.plot_midplane_slice`, :func:`pyFC.plot_raytrace`, :func:`pyFC.plot_power_spec`, :func:`pyFC.plot_pdf`, and their respective ``paint_<...>`` versions. The former create a figure and draw the respecitve plot, wheras the latter "paint" the plot into axes provided in the argument. This allows for custom arrangement of multi-panel figures. 
 

@@ -1,6 +1,6 @@
 """
 .. module:: clouds
-   :synopsis: Sub-odule containing all the main classes for creating and transforming fractal cubes.
+   :synopsis: Sub-module containing all the main classes for creating and transforming fractal cubes.
 
 
 .. moduleauthor:: Alexander Y. Wagner <alexaner.y.wagner@gmail.com>
@@ -8,10 +8,8 @@
 
 To do:
 
-  - Generalize to different ni, nj, nk. This requires different kmin_i, kmin_j, kmin_k.
   - Ensure that the routine works in 2D and 1D (Allow n{ijk}=1)
   - Parallelize (with mpi4py?).
-
 
 """
 import numpy as np
@@ -22,6 +20,9 @@ import copy
 import mathtools as mt
 from collections import OrderedDict
 
+
+# TODO Ensure that the routine works in 2D and 1D (Allow n{ijk}=1)
+# TODO Parallelize (with mpi4py?).
 
 class FCSlicer():
     """
@@ -556,8 +557,26 @@ class FractalCube():
             ['fc_extractor', [FCExtractor, 'extract_feature', 'lthreshold']],
             ['fc_raytracer', [FCRayTracer, 'pp_raytrace']]
         ))
-
         self._get_all_manipulators()
+
+        # Obtain box ratios
+        norder = np.argsort(self.shape)
+        inorder = np.argsort(norder)
+        shp_ord = np.array(self.shape)[norder]
+        self.cube_ratios = (1.0*shp_ord/shp_ord[2])[inorder]
+
+        # Obtain maximum values of kmin for box directions,
+        # which are smaller than the largest box dimension.
+        # This is not used in cloud generation procedure.
+        # Instead, the sampling vector is scaled appropriately.
+        # However, kmin !< 1 in any diretion after the scaling,
+        # and we check this here.
+        self.cube_kmins = ckm = kmin*self.cube_ratios
+        if np.any(np.less(ckm, 1.)):
+            print('Error: kmin for at least one dimension is less than 1.')
+            print('Increase the number of cells in that dimension, or increase kmin.')
+            raise(ValueError)
+
 
     def copy(self):
         """
@@ -738,7 +757,9 @@ class FractalCube():
         if nk is None: nk = self.nk
 
         sampli, samplj, samplk = fft.fftfreq(ni), fft.fftfreq(nj), fft.fftfreq(nk)
-        k1di, k1dj, k1dk = sampli * ni, samplj * nj, samplk * nk
+        k1di = sampli * ni / self.cube_ratios[0]
+        k1dj = samplj * nj / self.cube_ratios[1]
+        k1dk = samplk * nk / self.cube_ratios[2]
         ksqri, ksqrj, ksqrk = k1di * k1di, k1dj * k1dj, k1dk * k1dk
         kmag = np.sqrt(np.add.outer(np.add.outer(ksqri, ksqrj), ksqrk))
 
@@ -775,7 +796,7 @@ class FractalCube():
         We ravel the arrays because the digitize function requires 1d array
 
         If (already) raveled (at input), then assume that kr is 1d and that the 
-        first element represents k0 + 1. If not, ravel and remove first elemnts 
+        first element represents k0 + 1. If not, ravel and remove first elements
         of both kr and pspec.
         """
 
@@ -992,7 +1013,7 @@ class LogNormalFractalCube(FractalCube):
         if kmin is None: kmin = self.kmin
         if beta is None: beta = self.beta
 
-        kp = np.where(k > kmin, k, np.inf)
+        kp = np.where(np.greater_equal(k, kmin), k, np.inf)
         return kp ** (beta - 2.)
 
     def gen_cube(self, verbose=True):

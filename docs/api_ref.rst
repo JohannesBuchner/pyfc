@@ -25,6 +25,8 @@ The two main classes dealing with fractal cubes in this module are :class:`pyFC.
    :undoc-members:
    :show-inheritance:
 
+.. autofunction:: pyFC.FractalCube._returner
+
 Utility functions
 -----------------
 

@@ -152,10 +152,10 @@ def paint_midplane_slice(fc, pax=pl.gca(), ax=0,
         if plottype == 'imshow':
             pl.imshow(slice, vmin=vmin, vmax=vmax, cmap=cmap)
         elif plottype == 'pcolormesh':
+            pl.pcolormesh(slice, vmin=vmin, vmax=vmax, cmap=cmap)
             if ax == 2: pl.xlim((0, fc.ni)); pl.ylim((0, fc.nj));
             if ax == 1: pl.xlim((0, fc.ni)); pl.ylim((0, fc.nk));
             if ax == 0: pl.xlim((0, fc.nj)); pl.ylim((0, fc.nk));
-            pl.pcolormesh(slice, vmin=vmin, vmax=vmax, cmap=cmap)
         else:
             ValueError('plot_midplane_slice: Unknown plottype, ' + plottype)
     else:
